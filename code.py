@@ -135,7 +135,7 @@ if __name__ == '__main__':
     print(X,Y)
     alc = calculate_alignment_cost(X,Y)
     print(alc, alc[len(X)-1][len(Y)-1])
-    print(create_aligned_sequence(alc, X, Y))
+   #  print(create_aligned_sequence(alc, X, Y))
     print(tracemalloc.get_traced_memory())
     tracemalloc.stop()
     print(" --- Finished in %s seconds --- " % (time.time() - start_time))

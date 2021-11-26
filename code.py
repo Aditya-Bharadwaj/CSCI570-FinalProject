@@ -152,13 +152,9 @@ if __name__ == '__main__':
     alignment_cost_matrix = calculate_alignment_cost(X_orig, Y_orig)
     print("Optimal Alignment Cost:",
           alignment_cost_matrix[len(X_orig)][len(Y_orig)])
-    # for row in alignment_cost_matrix:
-    #    print(row)
     X_a, Y_a = create_aligned_sequence(alignment_cost_matrix, X_orig, Y_orig)
-    #print(len(X_a), len(Y_a))
     print(X_orig, Y_orig)
     print(X_a, Y_a)
-    # verify_output(X_a, Y_a, 'BaseTestcases_CS570FinalProject/output1.txt')
     print(tracemalloc.get_traced_memory())
     tracemalloc.stop()
     print(" --- Finished in %s seconds --- " % (time.time() - start_time))

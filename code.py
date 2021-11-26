@@ -140,6 +140,9 @@ def create_aligned_sequence(alignment_cost, X, Y):
         aligned_X += '_' * j
     return aligned_X[::-1], aligned_Y[::-1]
 
+def sequence_alignment(X, Y):
+    alignment_cost_matrix = calculate_alignment_cost(X, Y)
+    return create_aligned_sequence(alignment_cost_matrix, X, Y)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
@@ -149,10 +152,11 @@ if __name__ == '__main__':
     tracemalloc.start()
     X_orig, Y_orig = process_input(sys.argv[1])
     # Y_orig, X_orig = process_input(sys.argv[1])
-    alignment_cost_matrix = calculate_alignment_cost(X_orig, Y_orig)
-    print("Optimal Alignment Cost:",
-          alignment_cost_matrix[len(X_orig)][len(Y_orig)])
-    X_a, Y_a = create_aligned_sequence(alignment_cost_matrix, X_orig, Y_orig)
+    # alignment_cost_matrix = calculate_alignment_cost(X_orig, Y_orig)
+    # print("Optimal Alignment Cost:",
+    #      alignment_cost_matrix[len(X_orig)][len(Y_orig)])
+    X_a, Y_a = sequence_alignment(X_orig, Y_orig)
+
     print(X_orig, Y_orig)
     print(X_a, Y_a)
     print(tracemalloc.get_traced_memory())

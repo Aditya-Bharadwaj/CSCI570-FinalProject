@@ -20,7 +20,12 @@ mismatch_penalties = {
     "T": {    "A": 94,    "C": 48,      "G": 110,    "T": 0    }
 }
 
-
+# mismatch_penalties = {
+#     "m": {    "m": 0,     "e": 3,    "a": 3,     "n": 1    },
+#     "e": {    "m": 3,   "e": 0,      "a": 1,    "n": 3    },
+#     "a": {    "m": 3,    "e": 1,    "a": 0,      "n": 3    },
+#     "n": {    "m": 1,    "e": 3,      "a": 3,    "n": 0    }
+# } 
 delta = 30
 
 def generate_string(base_str, indices):
@@ -79,10 +84,9 @@ def verify_output(X, Y, output_file):
 def calculate_alignment_cost(X,Y):
     x_len = len(X)
     y_len = len(Y)
-    # alignment_cost = np.empty((x_len+1, y_len+1))
-    # alignment_cost = [[0] * (y_len+1)] * (x_len+1)
-    # alignment_cost = 
-    alignment_cost = [[0 for _ in range(y_len+1)] for _ in range(x_len+1)]
+
+    # Find if there's a better way to initialize
+    alignment_cost = [[None for _ in range(y_len+1)] for _ in range(x_len+1)]
     for i in range(0, x_len+1):
         alignment_cost[i][0] = i * delta
 
@@ -92,7 +96,7 @@ def calculate_alignment_cost(X,Y):
     for i in range(1,x_len+1):
         for j in range(1,y_len+1):
             alignment_cost[i][j] = \
-                min(
+                max(
                     alignment_cost[i-1][j-1] + mismatch_penalties[X[i-1]][Y[j-1]],
                     alignment_cost[i-1][j] + delta,
                     alignment_cost[i][j-1] + delta
@@ -105,15 +109,8 @@ def create_aligned_sequence(alignment_cost, X, Y):
     j = len(Y)
     aligned_X = str()
     aligned_Y = str()
-    # pointer_moves = 0
     while i != 0 and j != 0:
-        # print(X[i], Y[j],i , j)
-        if X[i-1] == Y[j-1]:
-            aligned_X += X[i-1]
-            aligned_Y += Y[j-1]
-            i -= 1
-            j -= 1
-        elif alignment_cost[i][j] == (alignment_cost[i-1][j-1] + mismatch_penalties[X[i-1]][Y[j-1]]):
+        if alignment_cost[i][j] == (alignment_cost[i-1][j-1] + mismatch_penalties[X[i-1]][Y[j-1]]):
             aligned_X += X[i-1]
             aligned_Y += Y[j-1]
             i -= 1
@@ -127,37 +124,13 @@ def create_aligned_sequence(alignment_cost, X, Y):
             aligned_Y += Y[j-1]
             j -=  1
 
-    # Option 1:
-    # l = i + j
-    # xl = len(aligned_X)
-    # yl = len(aligned_Y)
-    # print(l, xl, yl)
-    # while xl < l:
-    #     if i > 0:
-    #         aligned_X += X[i-1]
-    #         i -= 1
-    #     else:
-    #         aligned_X += '_'
-    #     xl += 1    
-    # while yl < l:
-    #     if j > 0:
-    #         aligned_Y += Y[j-1]
-    #         j -= 1
-    #     else:
-    #         aligned_Y += '_'
-    #     yl += 1
-
-    # ptr = l-1
-    # while aligned_X[ptr] == '_' and aligned_Y[ptr] == '_':
-    #     ptr -= 1
-    # return aligned_X[ptr::-1], aligned_Y[ptr::-1]
-
-    # Option 2:
     if i > 0:
-        aligned_X += X[:i]
+        remaining_str = X[:i]
+        aligned_X += remaining_str[::-1]
         aligned_Y += '_' * i
-    if j > 0:
-        aligned_Y += Y[:j]
+    elif j > 0:
+        remaining_str = Y[:j]
+        aligned_Y += remaining_str[::-1]
         aligned_X += '_' * j
     return aligned_X[::-1], aligned_Y[::-1]
 
@@ -168,18 +141,15 @@ if __name__ == '__main__':
     start_time = time.time()
     tracemalloc.start()
     X_orig, Y_orig = process_input(sys.argv[1])
-    # X_orig,Y_orig = 'AGCT','AGCG'
+    # Y_orig, X_orig = process_input(sys.argv[1])
     alignment_cost_matrix = calculate_alignment_cost(X_orig,Y_orig)
-    # print("Optimal Alignment Cost:", alignment_cost_matrix[len(X_orig)][len(Y_orig)])
+    print("Optimal Alignment Cost:", alignment_cost_matrix[len(X_orig)][len(Y_orig)])
     # for row in alignment_cost_matrix:
     #    print(row)
-    # print(X,Y)
-    # X_a, Y_a = create_aligned_sequence(alignment_cost_matrix, X_orig, Y_orig)
+    X_a, Y_a = create_aligned_sequence(alignment_cost_matrix, X_orig, Y_orig)
     #print(len(X_a), len(Y_a))
-    # print(X_orig, Y_orig)
-    # print(X_a, Y_a)
-    # exit()
-
+    print(X_orig, Y_orig)
+    print(X_a, Y_a)
     # verify_output(X_a, Y_a, 'BaseTestcases_CS570FinalProject/output1.txt')
     print(tracemalloc.get_traced_memory())
     tracemalloc.stop()

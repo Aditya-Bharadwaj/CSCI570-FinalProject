@@ -140,6 +140,7 @@ def create_aligned_sequence(alignment_cost, X, Y):
         aligned_X += '_' * j
     return aligned_X[::-1], aligned_Y[::-1]
 
+
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print("Usage: python3 <filename.py> <input.txt>")
@@ -151,7 +152,10 @@ if __name__ == '__main__':
     alignment_cost_matrix = calculate_alignment_cost(X_orig, Y_orig)
     print("Optimal Alignment Cost:",
           alignment_cost_matrix[len(X_orig)][len(Y_orig)])
+    # for row in alignment_cost_matrix:
+    #    print(row)
     X_a, Y_a = create_aligned_sequence(alignment_cost_matrix, X_orig, Y_orig)
+    #print(len(X_a), len(Y_a))
     print(X_orig, Y_orig)
     print(X_a, Y_a)
     # verify_output(X_a, Y_a, 'BaseTestcases_CS570FinalProject/output1.txt')

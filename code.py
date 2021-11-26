@@ -2,7 +2,7 @@ import tracemalloc
 import sys
 import time
 import re
-import numpy as np
+from array import array
 
 """ mismatch_penalties = \
 [
@@ -79,8 +79,10 @@ def verify_output(X, Y, output_file):
 def calculate_alignment_cost(X,Y):
     x_len = len(X)
     y_len = len(Y)
-    alignment_cost = np.empty((x_len+1, y_len+1))
-
+    # alignment_cost = np.empty((x_len+1, y_len+1))
+    # alignment_cost = [[0] * (y_len+1)] * (x_len+1)
+    # alignment_cost = 
+    alignment_cost = [[0 for _ in range(y_len+1)] for _ in range(x_len+1)]
     for i in range(0, x_len+1):
         alignment_cost[i][0] = i * delta
 
@@ -103,7 +105,7 @@ def create_aligned_sequence(alignment_cost, X, Y):
     j = len(Y)
     aligned_X = str()
     aligned_Y = str()
-    pointer_moves = 0
+    # pointer_moves = 0
     while i != 0 and j != 0:
         # print(X[i], Y[j],i , j)
         if X[i-1] == Y[j-1]:
@@ -165,14 +167,19 @@ if __name__ == '__main__':
         sys.exit()
     start_time = time.time()
     tracemalloc.start()
-    X_orig,Y_orig = process_input(sys.argv[1])
+    X_orig, Y_orig = process_input(sys.argv[1])
+    # X_orig,Y_orig = 'AGCT','AGCG'
     alignment_cost_matrix = calculate_alignment_cost(X_orig,Y_orig)
-    print("Optimal Alignment Cost:", alignment_cost_matrix[len(X_orig)][len(Y_orig)])
+    # print("Optimal Alignment Cost:", alignment_cost_matrix[len(X_orig)][len(Y_orig)])
+    # for row in alignment_cost_matrix:
+    #    print(row)
     # print(X,Y)
-    X_a, Y_a = create_aligned_sequence(alignment_cost_matrix, X_orig, Y_orig)
-    print(len(X_a), len(Y_a))
-    print(X_orig, Y_orig)
-    print(X_a, Y_a)
+    # X_a, Y_a = create_aligned_sequence(alignment_cost_matrix, X_orig, Y_orig)
+    #print(len(X_a), len(Y_a))
+    # print(X_orig, Y_orig)
+    # print(X_a, Y_a)
+    # exit()
+
     # verify_output(X_a, Y_a, 'BaseTestcases_CS570FinalProject/output1.txt')
     print(tracemalloc.get_traced_memory())
     tracemalloc.stop()

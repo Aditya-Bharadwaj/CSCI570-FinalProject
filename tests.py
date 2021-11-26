@@ -7,7 +7,7 @@ class TestInputStringGeneration(unittest.TestCase):
         output = generate_string("ACTG", [3, 6, 1])
         self.assertEqual(output, "ACACTGACTACTGACTGGTGACTACTGACTGG")
         output2 = generate_string("TACG", [1, 2, 9])
-        self.assertEqual(output2, "TATTATACGCTATTATACGCGAXGCGGACGCG")
+        self.assertEqual(output2, "TATTATACGCTATTATACGCGACGCGGACGCG")
 
 
 if __name__ == '__main__':

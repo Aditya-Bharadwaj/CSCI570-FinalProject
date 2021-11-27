@@ -2,31 +2,15 @@ import tracemalloc
 import sys
 import time
 import re
-from array import array
 
-""" mismatch_penalties = \
-[
- [0, 110, 48, 94],
- [110, 0, 118, 48],
- [48, 118, 0, 110],
- [94, 48, 110, 0]
-]
- """
-
-mismatch_penalties = {
+MISMATCH_PENALTIES = {
     "A": {"A": 0,     "C": 110,    "G": 48,     "T": 94},
     "C": {"A": 110,   "C": 0,      "G": 118,    "T": 48},
     "G": {"A": 48,    "C": 118,    "G": 0,      "T": 110},
     "T": {"A": 94,    "C": 48,      "G": 110,    "T": 0}
 }
 
-# mismatch_penalties = {
-#     "m": {    "m": 0,     "e": 3,    "a": 3,     "n": 1    },
-#     "e": {    "m": 3,   "e": 0,      "a": 1,    "n": 3    },
-#     "a": {    "m": 3,    "e": 1,    "a": 0,      "n": 3    },
-#     "n": {    "m": 1,    "e": 3,      "a": 3,    "n": 0    }
-# }
-delta = 30
+DELTA = 30
 
 
 def generate_string(base_str, indices):
@@ -51,7 +35,7 @@ def read_file(filename):
         x_indices = list()
         for line in input_txt:
             value = line.rstrip()
-            if value.isnumeric() == False:
+            if value.isnumeric() is False:
                 break
             x_indices.append(int(value))
         y_base = value.rstrip()
@@ -78,58 +62,62 @@ def process_input(filename):
 
 def verify_output(X, Y, output_file):
     with open(output_file, 'r') as of:
-        values = [line.rstrip() for line in of.readlines()]
-    X_o_f50 = values[0][:50]
-    X_o_l50 = values[0][-50:]
-    Y_o_f50 = values[1][:50]
-    Y_o_l50 = values[1][-50:]
+        X_output_F50, X_output_L50 = of.readline().rstrip().split(' ')
+        Y_output_F50, Y_output_L50 = of.readline().rstrip().split(' ')
+    X_matches = X[:50] == X_output_F50 and X[-50:] == X_output_L50
+    Y_matches = Y[:50] == Y_output_F50 and Y[-50:] == Y_output_L50
+    return (X_matches and Y_matches)
 
 
-def calculate_alignment_cost(X, Y):
+def calculate_alignment_cost_brute(X, Y):
+    """
+    Computes cost of aligning sequences X and Y and subproblems within
+    """
     x_len = len(X)
     y_len = len(Y)
 
-    # Find if there's a better way to initialize
+    # Find if there's a better way to initialize?
     alignment_cost = [[None for _ in range(y_len+1)] for _ in range(x_len+1)]
-    for i in range(0, x_len+1):
-        alignment_cost[i][0] = i * delta
+    for i in range(x_len+1):
+        alignment_cost[i][0] = i * DELTA
 
     for j in range(y_len+1):
-        alignment_cost[0][j] = j * delta
+        alignment_cost[0][j] = j * DELTA
 
     for i in range(1, x_len+1):
         for j in range(1, y_len+1):
             alignment_cost[i][j] = \
                 min(
                     alignment_cost[i-1][j-1] +
-                mismatch_penalties[X[i-1]][Y[j-1]],
-                    alignment_cost[i-1][j] + delta,
-                    alignment_cost[i][j-1] + delta
+                MISMATCH_PENALTIES[X[i-1]][Y[j-1]],
+                    alignment_cost[i-1][j] + DELTA,
+                    alignment_cost[i][j-1] + DELTA
             )
     return alignment_cost
 
 
-
 def create_aligned_sequence(alignment_cost, X, Y):
+    """
+    Creates aligned strings for X and Y using cost matrix for backtracking
+    """
     i = len(X)
     j = len(Y)
-    aligned_X = str()
-    aligned_Y = str()
+    aligned_X = ''
+    aligned_Y = ''
     while i != 0 and j != 0:
-        if alignment_cost[i][j] == (alignment_cost[i-1][j-1] + mismatch_penalties[X[i-1]][Y[j-1]]):
+        if alignment_cost[i][j] == (alignment_cost[i-1][j-1] + MISMATCH_PENALTIES[X[i-1]][Y[j-1]]):
             aligned_X += X[i-1]
             aligned_Y += Y[j-1]
             i -= 1
             j -= 1
-        elif alignment_cost[i][j] == (alignment_cost[i-1][j] + delta):
+        elif alignment_cost[i][j] == (alignment_cost[i-1][j] + DELTA):
             aligned_X += X[i-1]
             aligned_Y += '_'
             i -= 1
-        elif alignment_cost[i][j] == (alignment_cost[i][j-1] + delta):
+        elif alignment_cost[i][j] == (alignment_cost[i][j-1] + DELTA):
             aligned_X += '_'
             aligned_Y += Y[j-1]
             j -= 1
-
     if i > 0:
         remaining_str = X[:i]
         aligned_X += remaining_str[::-1]
@@ -140,9 +128,14 @@ def create_aligned_sequence(alignment_cost, X, Y):
         aligned_X += '_' * j
     return aligned_X[::-1], aligned_Y[::-1]
 
-def sequence_alignment(X, Y):
-    alignment_cost_matrix = calculate_alignment_cost(X, Y)
+
+def sequence_alignment_brute(X, Y):
+    """
+    Returns aligned sequences for X and Y
+    """
+    alignment_cost_matrix = calculate_alignment_cost_brute(X, Y)
     return create_aligned_sequence(alignment_cost_matrix, X, Y)
+
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
@@ -151,14 +144,16 @@ if __name__ == '__main__':
     start_time = time.time()
     tracemalloc.start()
     X_orig, Y_orig = process_input(sys.argv[1])
-    # Y_orig, X_orig = process_input(sys.argv[1])
-    # alignment_cost_matrix = calculate_alignment_cost(X_orig, Y_orig)
-    # print("Optimal Alignment Cost:",
-    #      alignment_cost_matrix[len(X_orig)][len(Y_orig)])
-    X_a, Y_a = sequence_alignment(X_orig, Y_orig)
-
-    print(X_orig, Y_orig)
-    print(X_a, Y_a)
+    alignment_cost_matrix = calculate_alignment_cost_brute(X_orig, Y_orig)
+    X_aligned, Y_aligned = sequence_alignment_brute(X_orig, Y_orig)
+    # print(X_orig, Y_orig)
+    # How the incorrect output file is printing outputs:
+    # print(X_aligned[:50], Y_aligned[:50])
+    # print(X_aligned[-50:], Y_aligned[-50:])
+    # How it actually should be printing outputs:
+    print(X_aligned[:50], X_aligned[-50:])
+    print(Y_aligned[:50], Y_aligned[-50:])
+    print(alignment_cost_matrix[-1][-1])
     print(tracemalloc.get_traced_memory())
     tracemalloc.stop()
     print(" --- Finished in %s seconds --- " % (time.time() - start_time))

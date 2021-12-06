@@ -1,0 +1,1 @@
+python3 code.py BaseTestcases_CS570FinalProject/input1.txt | tee output.txt

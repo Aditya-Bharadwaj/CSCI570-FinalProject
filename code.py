@@ -4,13 +4,13 @@ import time
 import re
 
 MISMATCH_PENALTIES = {
-    "A": {"A": 0,     "C": 110,    "G": 48,     "T": 94},
-    "C": {"A": 110,   "C": 0,      "G": 118,    "T": 48},
-    "G": {"A": 48,    "C": 118,    "G": 0,      "T": 110},
-    "T": {"A": 94,    "C": 48,      "G": 110,    "T": 0}
+    "A": {"A": 0.0,     "C": 110.0,    "G": 48.0,     "T": 94.0},
+    "C": {"A": 110.0,   "C": 0.0,      "G": 118.0,    "T": 48.0},
+    "G": {"A": 48.0,    "C": 118.0,    "G": 0.0,      "T": 110.0},
+    "T": {"A": 94.0,    "C": 48.0,      "G": 110.0,    "T": 0.0}
 }
 
-DELTA = 30
+DELTA = 30.0
 
 
 def generate_string(base_str, indices):
@@ -58,15 +58,6 @@ def process_input(filename):
     dna_str_x = generate_string(x_base, x_indices)
     dna_str_y = generate_string(y_base, y_indices)
     return (dna_str_x.upper(), dna_str_y.upper())
-
-
-def verify_output(X, Y, output_file):
-    with open(output_file, 'r') as of:
-        X_output_F50, X_output_L50 = of.readline().rstrip().split(' ')
-        Y_output_F50, Y_output_L50 = of.readline().rstrip().split(' ')
-    X_matches = X[:50] == X_output_F50 and X[-50:] == X_output_L50
-    Y_matches = Y[:50] == Y_output_F50 and Y[-50:] == Y_output_L50
-    return (X_matches and Y_matches)
 
 
 def calculate_alignment_cost_brute(X, Y):
@@ -134,11 +125,15 @@ def sequence_alignment_brute(X, Y):
     Returns aligned sequences for X and Y
     """
     alignment_cost_matrix = calculate_alignment_cost_brute(X, Y)
-    return create_aligned_sequence(alignment_cost_matrix, X, Y)
+    aligned_X, aligned_Y = create_aligned_sequence(alignment_cost_matrix, X, Y)
+    return aligned_X, aligned_Y
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
+    # output_file = 'output.txt'
+    # if len(sys.argv) == 3:
+    #     output_file = sys.argv[2]
+    if len(sys.argv) < 2:
         print("Usage: python3 <filename.py> <input.txt>")
         sys.exit()
     start_time = time.time()
@@ -147,13 +142,14 @@ if __name__ == '__main__':
     alignment_cost_matrix = calculate_alignment_cost_brute(X_orig, Y_orig)
     X_aligned, Y_aligned = sequence_alignment_brute(X_orig, Y_orig)
     # print(X_orig, Y_orig)
-    # How the incorrect output file is printing outputs:
-    # print(X_aligned[:50], Y_aligned[:50])
-    # print(X_aligned[-50:], Y_aligned[-50:])
-    # How it actually should be printing outputs:
+    # with open(output_file, 'w+') as of:
+    #     of.write(X_aligned[:50] + " " + X_aligned[-50:])
+    #     of.write(Y_aligned[:50] + " " + Y_aligned[-50:])
+    #     of.write(str(alignment_cost_matrix[-1][-1]))
+    #     of.write(str(tracemalloc.get_traced_memory()[1]/1024))
+
     print(X_aligned[:50], X_aligned[-50:])
     print(Y_aligned[:50], Y_aligned[-50:])
     print(alignment_cost_matrix[-1][-1])
-    print(tracemalloc.get_traced_memory())
-    tracemalloc.stop()
-    print(" --- Finished in %s seconds --- " % (time.time() - start_time))
+    print(time.time() - start_time)
+    print(tracemalloc.get_traced_memory()[1]/1024)

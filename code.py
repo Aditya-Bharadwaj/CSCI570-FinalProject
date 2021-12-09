@@ -130,35 +130,65 @@ def create_aligned_sequence(alignment_cost, X, Y):
 #     print(min_value)
 #     return min_index
 
+
 def find_min_index(forward_alignment, backward_alignment):
     print(forward_alignment[-1])
     print(backward_alignment[-1])
-    partition = [forward_alignment[-1][j] + backward_alignment[-1][j] for j in range(len(forward_alignment[-1]))]
+    partition = [forward_alignment[-1][j] + backward_alignment[-1][j]
+                 for j in range(len(forward_alignment[-1]))]
     min_index, min_value = 0, float('inf')
     for j in range(len(forward_alignment[-1])):
         if min_value >= forward_alignment[-1][j] + backward_alignment[-1][j]:
             min_index = j
             min_value = forward_alignment[-1][j] + backward_alignment[-1][j]
     return min_index
-    #return partition.index(min(partition))
-    
+    # return partition.index(min(partition))
+
+
+def backward_space_efficient_alignment(X, Y):
+    """
+    Computes cost of alignment backwards in a space efficient manner
+    """
+    x_len = len(X)
+    y_len = len(Y)
+    efficient_alignment = [[0 for _ in range(y_len+1)] for _ in range(2)]
+
+    for j in range(y_len+1):
+        efficient_alignment[0][y_len - j] = j * DELTA
+
+    for i in range(x_len-1, -1, -1):
+        efficient_alignment[1][-1] = i * DELTA
+        for j in range(y_len-1, -1, -1):
+            efficient_alignment[1][j] = \
+                min(
+                    efficient_alignment[0][j+1] + DELTA,
+                    efficient_alignment[1][j] + DELTA,
+                    efficient_alignment[1][j+1] +
+                MISMATCH_PENALTIES[X[i+1]][Y[j+1]]
+            )
+        efficient_alignment[0] = efficient_alignment[1].copy()
+
+        return efficient_alignment
+
+
 def space_efficient_alignment(X, Y):
     x_len = len(X)
     y_len = len(Y)
     efficient_alignment = [[0 for _ in range(y_len+1)] for _ in range(2)]
-    
+
     for j in range(y_len+1):
         efficient_alignment[0][j] = j * DELTA
-    
+
     for i in range(1, x_len+1):
         efficient_alignment[1][0] = i * DELTA
         for j in range(1, y_len+1):
             efficient_alignment[1][j] = \
-                            min(
-                                efficient_alignment[0][j-1] + MISMATCH_PENALTIES[X[i-1]][Y[j-1]],
-                                efficient_alignment[0][j] + DELTA,
-                                efficient_alignment[1][j-1] + DELTA
-                            )
+                min(
+                efficient_alignment[0][j-1] +
+                MISMATCH_PENALTIES[X[i-1]][Y[j-1]],
+                efficient_alignment[0][j] + DELTA,
+                efficient_alignment[1][j-1] + DELTA
+            )
         # print(efficient_alignment[0])
         efficient_alignment[0] = efficient_alignment[1].copy()
     # print(efficient_alignment[0])
@@ -168,10 +198,10 @@ def space_efficient_alignment(X, Y):
 #     x_len = len(X)
 #     y_len = len(Y)
 #     efficient_alignment = [[0 for _ in range(2)] for _ in range(x_len+1)]
-    
+
 #     for i in range(x_len+1):
 #         efficient_alignment[i][0] = i * DELTA
-    
+
 #     for j in range(1, y_len+1):
 #         efficient_alignment[0][1] = j * DELTA
 #         for i in range(1, x_len+1):
@@ -188,17 +218,21 @@ def space_efficient_alignment(X, Y):
 #     print()
 #     return efficient_alignment
 
+
 p = list()
+
+
 def divide_and_conquer_alignment(X, Y):
     global p
     print("---------")
-    print(X,Y)
+    print(X, Y)
     x_len = len(X)
     y_len = len(Y)
     if x_len < 2 or y_len < 2:
         # call original alignment fn
         # maybe we need to return here but not sure what to add to global p
-        print("returning %s, %s: %d" % (X, Y, calculate_alignment_cost_brute(X, Y)[-1][-1]))
+        print("returning %s, %s: %d" %
+              (X, Y, calculate_alignment_cost_brute(X, Y)[-1][-1]))
         return calculate_alignment_cost_brute(X, Y)[-1][-1]
 
     forward_alignment = space_efficient_alignment(X[:x_len//2], Y)
@@ -210,7 +244,7 @@ def divide_and_conquer_alignment(X, Y):
     print("min_index: ", min_index)
     p.append((min_index, x_len//2))
     # p.append((min_index, y_len/2))
-    
+
     print("left")
     left = divide_and_conquer_alignment(X[:x_len//2], Y[:min_index])
     print("right")
@@ -219,7 +253,7 @@ def divide_and_conquer_alignment(X, Y):
     # right = divide_and_conquer_alignment(X[min_index:], Y[int((y_len/2)):])
     print("%s, %s: %d" % (X, Y, left+right))
     return left + right
-    
+
 
 def sequence_alignment_brute(X, Y):
     """
@@ -252,11 +286,12 @@ if __name__ == '__main__':
     print(X_aligned[:50], X_aligned[-50:])
     print(Y_aligned[:50], Y_aligned[-50:])
     print(alignment_cost_matrix[-1][-1])
-    
+
     # space efficient approach
     X_orig, Y_orig = "AGCT", "AAACTAC"
     print("Divide and conquer", divide_and_conquer_alignment(X_orig, Y_orig))
-    print("Brute force: ", calculate_alignment_cost_brute(X_orig, Y_orig)[-1][-1])
+    print("Brute force: ", calculate_alignment_cost_brute(
+        X_orig, Y_orig)[-1][-1])
 
     print(tracemalloc.get_traced_memory())
     tracemalloc.stop()

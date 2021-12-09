@@ -66,8 +66,6 @@ def calculate_alignment_cost_brute(X, Y):
     """
     x_len = len(X)
     y_len = len(Y)
-
-    # Find if there's a better way to initialize?
     alignment_cost = [[None for _ in range(y_len+1)] for _ in range(x_len+1)]
     for i in range(x_len+1):
         alignment_cost[i][0] = i * DELTA
@@ -84,8 +82,6 @@ def calculate_alignment_cost_brute(X, Y):
                     alignment_cost[i-1][j] + DELTA,
                     alignment_cost[i][j-1] + DELTA
             )
-    # for row in alignment_cost:
-    #    print(row)
     return alignment_cost
 
 
@@ -121,28 +117,17 @@ def create_aligned_sequence(alignment_cost, X, Y):
         aligned_X += '_' * j
     return aligned_X[::-1], aligned_Y[::-1]
 
-# def find_min_index(forward_alignment, backward_alignment):
-#     min_index, min_value = 0, float('inf')
-#     for i in range(len(forward_alignment)):
-#         if min_value > (forward_alignment[i][-1] + backward_alignment[i][-1]):
-#             min_value = forward_alignment[i][-1] + backward_alignment[i][-1]
-#             min_index = i
-#     print(min_value)
-#     return min_index
-
 
 def find_min_index(forward_alignment, backward_alignment):
-    print(forward_alignment[-1])
-    print(backward_alignment[-1])
-    partition = [forward_alignment[-1][j] + backward_alignment[-1][j]
-                 for j in range(len(forward_alignment[-1]))]
+    """
+    Minimizes f + b and returns that index
+    """
     min_index, min_value = 0, float('inf')
     for j in range(len(forward_alignment[-1])):
         if min_value >= forward_alignment[-1][j] + backward_alignment[-1][j]:
             min_index = j
             min_value = forward_alignment[-1][j] + backward_alignment[-1][j]
     return min_index
-    # return partition.index(min(partition))
 
 
 def backward_space_efficient_alignment(X, Y):
@@ -157,21 +142,24 @@ def backward_space_efficient_alignment(X, Y):
         efficient_alignment[0][y_len - j] = j * DELTA
 
     for i in range(x_len-1, -1, -1):
-        efficient_alignment[1][-1] = i * DELTA
+        efficient_alignment[1][-1] = (x_len - i + 2) * DELTA
         for j in range(y_len-1, -1, -1):
             efficient_alignment[1][j] = \
                 min(
-                    efficient_alignment[0][j+1] + DELTA,
-                    efficient_alignment[1][j] + DELTA,
-                    efficient_alignment[1][j+1] +
-                MISMATCH_PENALTIES[X[i+1]][Y[j+1]]
+                    efficient_alignment[1][j+1] + DELTA,
+                    efficient_alignment[0][j] + DELTA,
+                    efficient_alignment[0][j+1] +
+                MISMATCH_PENALTIES[X[i]][Y[j]]
             )
         efficient_alignment[0] = efficient_alignment[1].copy()
 
-        return efficient_alignment
+    return efficient_alignment
 
 
-def space_efficient_alignment(X, Y):
+def forward_space_efficient_alignment(X, Y):
+    """
+    Computes cost of alignment forwards in a space efficient manner
+    """
     x_len = len(X)
     y_len = len(Y)
     efficient_alignment = [[0 for _ in range(y_len+1)] for _ in range(2)]
@@ -189,70 +177,26 @@ def space_efficient_alignment(X, Y):
                 efficient_alignment[0][j] + DELTA,
                 efficient_alignment[1][j-1] + DELTA
             )
-        # print(efficient_alignment[0])
         efficient_alignment[0] = efficient_alignment[1].copy()
-    # print(efficient_alignment[0])
     return efficient_alignment
-
-# def space_efficient_alignment(X, Y):
-#     x_len = len(X)
-#     y_len = len(Y)
-#     efficient_alignment = [[0 for _ in range(2)] for _ in range(x_len+1)]
-
-#     for i in range(x_len+1):
-#         efficient_alignment[i][0] = i * DELTA
-
-#     for j in range(1, y_len+1):
-#         efficient_alignment[0][1] = j * DELTA
-#         for i in range(1, x_len+1):
-#             efficient_alignment[i][1] = \
-#                             min(
-#                                 efficient_alignment[i-1][0] + MISMATCH_PENALTIES[X[i-1]][Y[j-1]],
-#                                 efficient_alignment[i-1][1] + DELTA,
-#                                 efficient_alignment[i][0] + DELTA
-#                             )
-#         for i in range(x_len+1):
-#             efficient_alignment[i][0] = efficient_alignment[i][1]
-#     for row in efficient_alignment:
-#         print(row)
-#     print()
-#     return efficient_alignment
-
-
-p = list()
 
 
 def divide_and_conquer_alignment(X, Y):
-    global p
-    print("---------")
-    print(X, Y)
+    """
+    Returns aligned sequences for X and Y via Divide & Conquer
+    """
     x_len = len(X)
     y_len = len(Y)
     if x_len < 2 or y_len < 2:
-        # call original alignment fn
-        # maybe we need to return here but not sure what to add to global p
-        print("returning %s, %s: %d" %
-              (X, Y, calculate_alignment_cost_brute(X, Y)[-1][-1]))
-        return calculate_alignment_cost_brute(X, Y)[-1][-1]
-
-    forward_alignment = space_efficient_alignment(X[:x_len//2], Y)
-    backward_alignment = space_efficient_alignment(X[x_len//2:][::-1], Y[::-1])
-    # forward_alignment = space_efficient_alignment(X, Y[:int(y_len/2)])
-    # backward_alignment = space_efficient_alignment(X[::-1], Y[int((y_len/2)):][::-1])
+        return sequence_alignment_brute(X, Y)
+    forward_alignment = forward_space_efficient_alignment(X[:x_len//2], Y)
+    backward_alignment = backward_space_efficient_alignment(X[x_len//2:], Y)
     min_index = find_min_index(forward_alignment, backward_alignment)
-    # append to p
-    print("min_index: ", min_index)
-    p.append((min_index, x_len//2))
-    # p.append((min_index, y_len/2))
-
-    print("left")
-    left = divide_and_conquer_alignment(X[:x_len//2], Y[:min_index])
-    print("right")
-    right = divide_and_conquer_alignment(X[x_len//2:], Y[min_index:])
-    # left = divide_and_conquer_alignment(X[:min_index], Y[:int(y_len/2)])
-    # right = divide_and_conquer_alignment(X[min_index:], Y[int((y_len/2)):])
-    print("%s, %s: %d" % (X, Y, left+right))
-    return left + right
+    left_x, left_y, left_opt = divide_and_conquer_alignment(
+        X[: x_len//2], Y[: min_index])
+    right_x, right_y, right_opt = divide_and_conquer_alignment(
+        X[x_len//2:], Y[min_index:])
+    return (left_x+right_x), (left_y+right_y), (left_opt+right_opt)
 
 
 def sequence_alignment_brute(X, Y):
@@ -261,40 +205,21 @@ def sequence_alignment_brute(X, Y):
     """
     alignment_cost_matrix = calculate_alignment_cost_brute(X, Y)
     aligned_X, aligned_Y = create_aligned_sequence(alignment_cost_matrix, X, Y)
-    return aligned_X, aligned_Y
+    return aligned_X, aligned_Y, alignment_cost_matrix[-1][-1]
 
 
 if __name__ == '__main__':
-    # output_file = 'output.txt'
-    # if len(sys.argv) == 3:
-    #     output_file = sys.argv[2]
     if len(sys.argv) < 2:
         print("Usage: python3 <filename.py> <input.txt>")
         sys.exit()
     start_time = time.time()
     tracemalloc.start()
     X_orig, Y_orig = process_input(sys.argv[1])
-    alignment_cost_matrix = calculate_alignment_cost_brute(X_orig, Y_orig)
-    X_aligned, Y_aligned = sequence_alignment_brute(X_orig, Y_orig)
-    # print(X_orig, Y_orig)
-    # with open(output_file, 'w+') as of:
-    #     of.write(X_aligned[:50] + " " + X_aligned[-50:])
-    #     of.write(Y_aligned[:50] + " " + Y_aligned[-50:])
-    #     of.write(str(alignment_cost_matrix[-1][-1]))
-    #     of.write(str(tracemalloc.get_traced_memory()[1]/1024))
-
-    print(X_aligned[:50], X_aligned[-50:])
-    print(Y_aligned[:50], Y_aligned[-50:])
-    print(alignment_cost_matrix[-1][-1])
-
-    # space efficient approach
-    X_orig, Y_orig = "AGCT", "AAACTAC"
-    print("Divide and conquer", divide_and_conquer_alignment(X_orig, Y_orig))
-    print("Brute force: ", calculate_alignment_cost_brute(
-        X_orig, Y_orig)[-1][-1])
-
-    print(tracemalloc.get_traced_memory())
-    tracemalloc.stop()
-    print(" --- Finished in %s seconds --- " % (time.time() - start_time))
+    X_aligned, Y_aligned, opt_cost = divide_and_conquer_alignment(
+        X_orig, Y_orig)
+    print(X_aligned[: 50], X_aligned[-50:])
+    print(Y_aligned[: 50], Y_aligned[-50:])
+    print(opt_cost)
     print(time.time() - start_time)
-    print(tracemalloc.get_traced_memory()[1]/1024)
+    print(tracemalloc.get_traced_memory()[1]/1000)
+    tracemalloc.stop()

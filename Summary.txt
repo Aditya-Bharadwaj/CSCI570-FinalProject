@@ -1,0 +1,14 @@
+Results:
+1. Both the basic version and memory efficient versions of the algorithm run in O(n^2) time. This is gleaned from looking at the curve.
+However the efficient version is slower and takes longer to run for a given input size. This is because of the extra processing that needs to be 
+done to find the best point to split the string in each iteration.
+2. The efficient version is much more memory efficient. It grows in size linearly with the input size (since we need a table to two rows of string size.)
+The basic version grows at O(n^2). When plotted in the same graph the growth rate is so much faster that it makes the efficient version look like it has a
+static growth rate even though it is linear.
+
+
+
+Contribution Report:- 
+1. Brute force method &  Plotting and input preparation - Aditya Bharadwaj
+2. Divide and Conquer method, forward efficient search, min index resolution - Karan Agrawal
+3. Test cases, random string generation for plots and backward efficient search - Hiranmaya Gundu

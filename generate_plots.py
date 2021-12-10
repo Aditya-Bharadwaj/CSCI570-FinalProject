@@ -50,8 +50,7 @@ def build_plots(input_size=100):
     plt.plot(xaxis, yaxis_cpu_brute, label="Brute Force")
     plt.plot(xaxis, yaxis_cpu_dnc, label="D&C")
     plt.legend()
-    # plt.savefig('cpu_problemsize.svg', format='svg')
-    plt.savefig('cpu_problemsize.png', format='png')
+    plt.savefig('CPUPlot.png', format='png')
 
     # Clear figure for new plot
     plt.clf()
@@ -63,8 +62,7 @@ def build_plots(input_size=100):
     plt.plot(xaxis, yaxis_mem_brute, label="Brute Force")
     plt.plot(xaxis, yaxis_mem_dnc, label="D&C")
     plt.legend()
-    # plt.savefig('mem_problemsize.svg', format='svg')
-    plt.savefig('mem_problemsize.png', format='png')
+    plt.savefig('MemoryPlot.png', format='png')
 
 
 if __name__ == '__main__':

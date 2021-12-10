@@ -40,7 +40,7 @@ Basic version:
 ./5889672313_3586943483_9346073553_basic.sh
 ```
 
-Both the shell scripts also take optional input parameter:
+Both the shell scripts also take optional input parameter. By default, it reads the input.txt file at root.
 
 ```sh
 ./5889672313_3586943483_9346073553_efficient.sh new_input.txt

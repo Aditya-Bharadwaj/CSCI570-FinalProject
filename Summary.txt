@@ -1,17 +1,12 @@
-Results:
-1. Both the basic version and memory efficient versions of the algorithm run in O(n^2) time. This is gleaned from looking at the curve.
-However the efficient version is slower and takes longer to run for a given input size. This is because of the extra processing that needs to be 
-done to find the best point to split the string in each iteration.
-2. The efficient version is much more memory efficient. It grows in size linearly with the input size (since we need a table to two rows of string size.)
-The basic version grows at O(n^2). When plotted in the same graph the growth rate is so much faster that it makes the efficient version look like it has a
-static growth rate even though it is linear.
-
+Observations:
+1. Both the basic version and memory efficient versions of the algorithm run in O(m*n) time, where m and n correspond to the string lengths. This can be gleaned from looking at the curve. However, the efficient version takes longer to run for a given pair of inputs. This is due to the fact that, at the first level of divide and conquer, we're computing the entire solution space (just like in the basic version), but at every subsequent level, we would still be performing computations with the problem size decreasing by half. So, overall the computation required would be twice that of the basic version.
+2. The efficient version is considerably more memory efficient, as it grows linearly with the input size. Since we only need two rows of string length (the solution needs only values from the previous computed row), the other rows can be safely discarded.  The basic version grows at O(m * n).  Its growth rate is so much faster that it makes the efficient version look static even though it is linear. 
 
 
 Contribution Report:- 
-1. Brute force method &  Plotting and input preparation - Aditya Bharadwaj
-2. Divide and Conquer method, forward efficient search, min index resolution - Karan Agrawal
-3. Test cases, random string generation for plots and backward efficient search - Hiranmaya Gundu
+1. Brute force method &  Plotting and input preparation - Aditya Bharadwaj (5889672313)
+2. Divide and Conquer method, forward efficient search, min index resolution - Karan Agrawal (3586943483)
+3. Test cases, random string generation for plots and backward efficient search - Hiranmaya Gundu (9346073553)
 
 Note:-
 1. To run the plot generation, run `python3 generate_plot.py`

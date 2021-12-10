@@ -12,3 +12,6 @@ Contribution Report:-
 1. Brute force method &  Plotting and input preparation - Aditya Bharadwaj
 2. Divide and Conquer method, forward efficient search, min index resolution - Karan Agrawal
 3. Test cases, random string generation for plots and backward efficient search - Hiranmaya Gundu
+
+Note:-
+1. To run the plot generation, run `python3 generate_plot.py`
